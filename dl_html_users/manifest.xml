@@ -1,0 +1,92 @@
+<extension engine="1.0"> 
+    <id>dl_html_users</id> 
+    <title>DL HTML user</title> 
+    <version>1.2</version> 
+    <description>Позволяет вставлять html код, в профиль пользователей (под аватаром).</description> 
+    <author>Ипатьев Степан, istepan@yandex.ru</author> 
+    <minversion>1.4</minversion> 
+    <maxtestedon>1.4.2</maxtestedon> 
+    <install> 
+        <![CDATA[ 
+            $forum_db->add_field('users', 'html_user', 'TEXT', true);
+            $forum_db->add_field('users', 'html_user_set', 'INT(1) UNSIGNED', false, '0');
+            $forum_db->add_field('users', 'html_user_display', 'INT(1) UNSIGNED', false, '1');
+        ]]>
+    </install> 
+    <uninstall> 
+        <![CDATA[ 
+            $forum_db->drop_field('users', 'html_user');
+            $forum_db->drop_field('users', 'html_user_set');
+            $forum_db->drop_field('users', 'html_user_display');
+        ]]>
+    </uninstall> 
+    <hooks> 
+        <hook id="vt_row_pre_post_contacts_merge"> 
+            <![CDATA[ 
+                if ($forum_user['html_user_display']) {
+                    $forum_page['author_info']['html_user'] = htmlspecialchars_decode($cur_post['html_user']);
+                };
+            ]]>
+        </hook> 
+        <hook id="vt_qr_get_posts"> 
+            <![CDATA[ 
+                $query['SELECT'] .= ', u.html_user, u.html_user_display'; 
+            ]]> 
+        </hook> 
+        <hook id="pf_change_details_signature_validation"> 
+            <![CDATA[ 
+                if ($forum_user['is_admmod'] || $user['html_user_set']){
+                    $form['html_user'] = forum_htmlencode(forum_linebreaks(forum_trim($_POST['html_user'])));
+                    
+                    if($forum_user['is_admmod']){
+                        $form['html_user_set'] = $_POST['html_user_set'] == '1' ? 1 : 0;
+                    }
+                } 
+                
+                $form['html_user_display'] = $_POST['html_user_display'] == '1' ? 1 : 0;
+            ]]> 
+        </hook> 
+        <hook id="pf_change_details_signature_pre_fieldset_end"> 
+            <![CDATA[ 
+            if (file_exists($ext_info['path'].'/lang/'.$forum_user['language'].'/'.$ext_info['id'].'.php')) 
+                include_once $ext_info['path'].'/lang/'.$forum_user['language'].'/'.$ext_info['id'].'.php'; 
+            else 
+                include_once $ext_info['path'].'/lang/English/'.$ext_info['id'].'.php'; ?> 
+                
+                <fieldset class="mf-set set<?php echo ++$forum_page['item_count'] ?>">
+					<legend><span><?php echo $lang_dl_html_users['HTML code'] ?></span></legend>
+                    <div class="mf-box">
+                        <?php if ($forum_user['is_admmod']):?>
+                        <div class="mf-item">
+                            <span class="fld-input"><input type="checkbox" id="fld<?php echo ++$forum_page['fld_count'] ?>" name="html_user_set" value="1"<?php if ($user['html_user_set'] == '1' || $user['is_admmod']) echo ' checked="checked"'; if ($user['is_admmod'])  echo ' disabled="disabled"'; ?> /></span>
+                            <label for="fld<?php echo $forum_page['fld_count'] ?>"><?php echo $lang_dl_html_users['Allow the user to change the code? Attention! It\'s not safe.'] ?></label>
+                        </div>
+                        <?php endif;?>
+                        <div class="mf-item">
+                            <span class="fld-input"><input type="checkbox" id="fld<?php echo ++$forum_page['fld_count'] ?>" name="html_user_display" value="1"<?php if ($user['html_user_display'] == '1') echo ' checked="checked"' ?> /></span>
+                            <label for="fld<?php echo $forum_page['fld_count'] ?>"><?php echo $lang_dl_html_users['Display HTML to author message block?'] ?></label>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <?php if ($user['html_user'] != ''):?>
+				<div class="ct-set set<?php echo ++$forum_page['item_count'] ?>">
+					<div class="ct-box">
+						<h3 class="ct-legend hn"><?php echo $lang_dl_html_users['Preview HTML'] ?></h3>
+						<div class="sig-demo"><?php echo htmlspecialchars_decode($user['html_user']) ?></div>
+					</div>
+				</div>
+                <?php endif;?>
+                
+                <?php if ($forum_user['is_admmod'] || $user['html_user_set']):?>
+            	<div class="txt-set set<?php echo ++$forum_page['item_count'] ?>">
+					<div class="txt-box textarea">
+						<label for="fld<?php echo ++$forum_page['fld_count'] ?>"><span><?php echo $lang_dl_html_users['HTML code displayed in the block author'] ?></span></label>
+						<div class="txt-input"><span class="fld-input"><textarea id="fld<?php echo $forum_page['fld_count'] ?>" name="html_user" rows="4" cols="65"><?php echo(isset($_POST['html_user']) ? htmlspecialchars_decode($_POST['html_user']) : htmlspecialchars_decode($user['html_user'])) ?></textarea></span></div>
+					</div>
+				</div> 
+                <?php endif;
+            ]]> 
+        </hook> 
+    </hooks> 
+</extension>
