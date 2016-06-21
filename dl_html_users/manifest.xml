@@ -5,7 +5,7 @@
     <description>Позволяет вставлять html код, в профиль пользователей (под аватаром).</description> 
     <author>Ипатьев Степан, istepan@yandex.ru</author> 
     <minversion>1.3.6</minversion> 
-    <maxtestedon>1.4.2</maxtestedon> 
+    <maxtestedon>1.4.4</maxtestedon> 
     <install> 
         <![CDATA[ 
             $forum_db->add_field('users', 'html_user', 'TEXT', true);
